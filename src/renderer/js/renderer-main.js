@@ -7,6 +7,7 @@
 import './ui-controller.js';
 import './target-ui.js';
 import './macro-ui.js';
+import './component-manager.js';  // Import the new component manager
 
 // DOM references
 const themeToggleButton = document.getElementById('theme-toggle');

@@ -31,17 +31,20 @@ macro-automation-tool/                # Root directory
 │       ├── styles/                   # CSS styles
 │       │   ├── main.css              # Main application styles ✓
 │       │   ├── themes.css            # Theme definitions (light/dark modes) ✓
-│       │   └── components.css        # Reusable component styles ✓
+│       │   ├── components.css        # Reusable component styles ✓
+│       │   └── component-interfaces.css # Component-specific styles ✓
 │       ├── js/                       # Renderer JavaScript files
 │       │   ├── renderer-main.js      # Main renderer process script ✓
 │       │   ├── ipc-renderer.js       # IPC communication (renderer process) ✓
 │       │   ├── ui-controller.js      # UI state and interactions ✓
 │       │   ├── target-ui.js          # Target selection UI handling ✓
-│       │   └── macro-ui.js           # Macro recording/playback UI ✓
+│       │   ├── macro-ui.js           # Macro recording/playback UI ✓
+│       │   └── component-manager.js  # Component initialization and integration ✓
 │       └── components/               # UI components
-│           ├── targeting-overlay.js  # Targeting mode overlay
-│           ├── macro-editor.js       # Macro sequence editor
-│           └── settings-panel.js     # Settings and configuration UI
+│           ├── README.md             # Component documentation ✓
+│           ├── targeting-overlay.js  # Targeting mode overlay ✓
+│           ├── macro-editor.js       # Macro sequence editor ✓
+│           └── settings-panel.js     # Settings and configuration UI ✓
 ├── assets/                           # Application assets
 │   └── icons/                        # Application icons
 │       ├── app-icon.png              # Main application icon
@@ -83,13 +86,16 @@ macro-automation-tool/                # Root directory
 - ✓ Keyboard event handling (Implemented in `keyboard-handler.js`)
 - ✓ Click simulation (Implemented in `click-simulator.js`)
 
-### Phase 3: User Interface (In Progress)
+### Phase 3: User Interface ✓
 - ✓ Basic UI framework (CSS structure and theming)
 - ✓ UI controllers (Implemented in `ui-controller.js`, `target-ui.js`, and `macro-ui.js`)
-- ◯ UI Components (targeting overlay, macro editor, settings panel)
+- ✓ UI Components (targeting overlay, macro editor, settings panel)
+
+### Phase 4: Core Features (In Progress)
+- ◯ Macro recording (`macro-recorder.js`)
+- ◯ Macro playback (`macro-player.js`)
 
 ### Remaining Phases (Not Started)
-- ◯ Macro recording and playback
 - ◯ Advanced error handling
 - ◯ Platform-specific implementation
 - ◯ Application packaging
@@ -106,7 +112,7 @@ macro-automation-tool/                # Root directory
    - **Renderer Process Files**: Suffix with `-renderer` or `-ui` for UI-specific modules
      - Example: `ipc-renderer.js`, `target-ui.js`
    - **Component Files**: Name after the specific UI component they implement
-     - Example: `targeting-overlay.js`, `settings-panel.js`
+     - Example: `targeting-overlay.js`, `macro-editor.js`
    - **Utility Files**: Group by functionality with `-utils` suffix
      - Example: `event-utils.js`, `platform-utils.js`
    - **Type Definition Files**: Suffix with `-types`
@@ -158,21 +164,56 @@ Each module is designed with clear, stable interfaces to ensure forward and back
    - Include migration logic for upgrading older configs
    - Example: `{ schemaVersion: '1.0', ... }`
 
+5. **UI Components**:
+   - Consistent interface with `initialize()`, `show()`, and `hide()` methods
+   - Event-based communication through callbacks
+   - Use of private state (with `_` prefix)
+   - Example: `TargetingOverlay.initialize({onTargetSelected: callback})`
+
+## Component Architecture
+
+The UI component system follows these design principles:
+
+1. **Component Manager**: Central initialization point in `component-manager.js`
+   - Handles component creation and integration
+   - Sets up event handlers and callbacks
+   - Applies configuration settings
+
+2. **Component Structure**:
+   - Private state and methods (with `_` prefix)
+   - Public API methods for interaction
+   - Event-based communication through callbacks
+   - Clear initialization patterns
+
+3. **Component Integration**:
+   - Components enhance existing UI without replacing it
+   - Shared styling through CSS variables
+   - Consistent DOM structure and manipulation patterns
+   - Progressive enhancement of functionality
+
+4. **Component Documentation**:
+   - Clear usage examples in `components/README.md`
+   - Documented callbacks and integration points
+   - Consistent design patterns across components
+
 ## Next Steps
 
-The project has completed Phases 1 and 2, and has made good progress on Phase 3. The following steps should be prioritized next:
+The project has completed Phases 1, 2, and 3, and is now ready to proceed to Phase 4. The following steps should be prioritized next:
 
-1. Complete the UI Components implementation:
-   - Implement dedicated component files for targeting overlay, macro editor, and settings panel
-   - Enhance the existing UI implementation with more robust features
-
-2. Implement Macro Recording and Playback:
+1. Implement Macro Recording:
    - Develop `macro-recorder.js` for capturing user actions
-   - Implement `macro-player.js` for replaying recorded macros
+   - Integrate with the new macro editor component
+   - Implement action recording for clicks, keystrokes, and delays
+
+2. Implement Macro Playback:
+   - Develop `macro-player.js` for replaying recorded macros
+   - Create a sequencing engine for action playback
+   - Implement error handling during playback
 
 3. Enhance Error Handling:
    - Implement `error-handler.js` for comprehensive error management
    - Add error recovery mechanisms
+   - Create user-friendly error notifications
 
 4. Complete Platform-Specific Implementation:
    - Enhance existing modules with better platform-specific handling
