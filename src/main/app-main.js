@@ -11,6 +11,8 @@ const IpcMainHandler = require('./ipc-main-handler');
 const TargetManager = require('./target-manager');
 const ClickSimulator = require('./click-simulator');
 const KeyboardHandler = require('./keyboard-handler');
+const MacroRecorder = require('./macro-recorder');
+const MacroPlayer = require('./macro-player');
 
 // Initialize logger
 const logger = createLogger('AppMain');
@@ -55,6 +57,12 @@ const AppMain = {
       
       // Initialize keyboard handler
       await this._initKeyboardHandler();
+      
+      // Initialize macro recorder
+      await this._initMacroRecorder();
+      
+      // Initialize macro player
+      await this._initMacroPlayer();
       
       // Initialize IPC handler
       await this._initIpcHandler();
@@ -282,6 +290,45 @@ const AppMain = {
   },
   
   /**
+   * Initializes the macro recorder
+   * 
+   * @private
+   * @returns {Promise<void>}
+   */
+  async _initMacroRecorder() {
+    logger.info('Initializing macro recorder');
+    
+    // Initialize macro recorder with dependencies
+    await MacroRecorder.initialize({
+      clickSimulator: ClickSimulator,
+      keyboardHandler: KeyboardHandler,
+      targetManager: TargetManager
+    });
+    
+    logger.info('Macro recorder initialized');
+  },
+  
+  /**
+   * Initializes the macro player
+   * 
+   * @private
+   * @returns {Promise<void>}
+   */
+  async _initMacroPlayer() {
+    logger.info('Initializing macro player');
+    
+    // Initialize macro player with dependencies
+    await MacroPlayer.initialize({
+      macroRecorder: MacroRecorder,
+      clickSimulator: ClickSimulator,
+      keyboardHandler: KeyboardHandler,
+      targetManager: TargetManager
+    });
+    
+    logger.info('Macro player initialized');
+  },
+  
+  /**
    * Initializes the IPC handler
    * 
    * @private
@@ -294,7 +341,9 @@ const AppMain = {
     IpcMainHandler.initialize({
       configManager: ConfigManager,
       targetManager: TargetManager,
-      keyboardHandler: KeyboardHandler
+      keyboardHandler: KeyboardHandler,
+      macroRecorder: MacroRecorder,
+      macroPlayer: MacroPlayer
     });
     
     logger.info('IPC handler initialized');

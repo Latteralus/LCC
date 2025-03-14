@@ -21,12 +21,12 @@ const IpcRenderer = {
      * @param {Object} [args] - Arguments to send with the message
      * @returns {Promise<Object>} - Response from the main process
      */
-    async send(channel, args) {
+    async send(channel, ...args) {
       try {
         console.log(`Sending IPC message: ${channel}`, args);
         
         // Send through the preload script's exposed API
-        const response = await window.api.send(channel, args);
+        const response = await window.api.send(channel, ...args);
         
         console.log(`Received IPC response: ${channel}`, response);
         return response;
@@ -40,18 +40,20 @@ const IpcRenderer = {
      * Register a listener for events from the main process
      * 
      * @param {string} channel - The channel to listen on
-     * @param {Function} callback - Function to call when an event is received
-     * @returns {Function} - Function to remove the listener
+     * @param {Function} callback - The callback function to invoke
+     * @returns {Function} - A function to remove the event listener
      */
     on(channel, callback) {
       try {
         console.log(`Registering IPC listener: ${channel}`);
         
         // Register through the preload script's exposed API
-        const removeListener = window.api.on(channel, (...args) => {
+        const subscription = (event, ...args) => {
           console.log(`Received IPC event: ${channel}`, args);
           callback(...args);
-        });
+        };
+        
+        const removeListener = window.api.on(channel, subscription);
         
         // Store the remove function for later cleanup
         this._listeners.set(callback, { channel, removeListener });
@@ -363,31 +365,46 @@ const IpcRenderer = {
     },
     
     /**
-     * Play a specific macro
+     * Cancel the current recording
      * 
-     * @param {string} macroId - ID of the macro to play
-     * @returns {Promise<Object>} - Result of the operation
+     * @returns {Promise<boolean>} - Whether the operation was successful
      */
-    async playMacro(macroId) {
-      const response = await IpcRenderer.send('macro:play', { macroId });
+    async cancelRecording() {
+      const response = await IpcRenderer.send('macro:cancel-recording');
       
       if (!response.success) {
-        throw new Error(response.error || 'Failed to play macro');
+        throw new Error(response.error || 'Failed to cancel recording');
+      }
+      
+      return response.data.cancelled;
+    },
+    
+    /**
+     * Get the current recording state
+     * 
+     * @returns {Promise<Object>} - Current recording state
+     */
+    async getRecordingState() {
+      const response = await IpcRenderer.send('macro:get-recording-state');
+      
+      if (!response.success) {
+        throw new Error(response.error || 'Failed to get recording state');
       }
       
       return response.data;
     },
     
     /**
-     * Stop the currently playing macro
+     * Get a specific macro by ID
      * 
-     * @returns {Promise<Object>} - Result of the operation
+     * @param {string} macroId - ID of the macro to retrieve
+     * @returns {Promise<Object>} - The macro
      */
-    async stopPlayback() {
-      const response = await IpcRenderer.send('macro:stop');
+    async getMacro(macroId) {
+      const response = await IpcRenderer.send('macro:get', { macroId });
       
       if (!response.success) {
-        throw new Error(response.error || 'Failed to stop macro playback');
+        throw new Error(response.error || 'Failed to get macro');
       }
       
       return response.data;
@@ -435,6 +452,140 @@ const IpcRenderer = {
       
       if (!response.success) {
         throw new Error(response.error || 'Failed to delete macro');
+      }
+      
+      return response.data;
+    },
+    
+    /**
+     * Clear all macros
+     * 
+     * @returns {Promise<boolean>} - Whether the operation was successful
+     */
+    async clearAllMacros() {
+      const response = await IpcRenderer.send('macro:clear-all');
+      
+      if (!response.success) {
+        throw new Error(response.error || 'Failed to clear all macros');
+      }
+      
+      return response.data.cleared;
+    },
+    
+    /**
+     * Add an action to the current recording
+     * 
+     * @param {Object} action - Action to add
+     * @returns {Promise<boolean>} - Whether the operation was successful
+     */
+    async addActionToRecording(action) {
+      const response = await IpcRenderer.send('macro:add-action', { action });
+      
+      if (!response.success) {
+        throw new Error(response.error || 'Failed to add action to recording');
+      }
+      
+      return response.data.added;
+    },
+    
+    /**
+     * Play a specific macro
+     * 
+     * @param {string} macroId - ID of the macro to play
+     * @param {Object} options - Playback options
+     * @param {number} [options.speed=1.0] - Playback speed multiplier
+     * @param {boolean} [options.repeat=false] - Whether to repeat the macro
+     * @param {number} [options.repeatCount=1] - Number of times to repeat
+     * @param {boolean} [options.suppressErrors=false] - Whether to continue on errors
+     * @returns {Promise<Object>} - Result of the operation
+     */
+    async playMacro(macroId, options = {}) {
+      const response = await IpcRenderer.send('macro:play', { 
+        macroId,
+        speed: options.speed,
+        repeat: options.repeat,
+        repeatCount: options.repeatCount,
+        suppressErrors: options.suppressErrors
+      });
+      
+      if (!response.success) {
+        throw new Error(response.error || 'Failed to play macro');
+      }
+      
+      return response.data;
+    },
+    
+    /**
+     * Stop the currently playing macro
+     * 
+     * @returns {Promise<boolean>} - Whether the operation was successful
+     */
+    async stopPlayback() {
+      const response = await IpcRenderer.send('macro:stop');
+      
+      if (!response.success) {
+        throw new Error(response.error || 'Failed to stop macro playback');
+      }
+      
+      return response.data.stopped;
+    },
+    
+    /**
+     * Pause the currently playing macro
+     * 
+     * @returns {Promise<boolean>} - Whether the operation was successful
+     */
+    async pausePlayback() {
+      const response = await IpcRenderer.send('macro:pause');
+      
+      if (!response.success) {
+        throw new Error(response.error || 'Failed to pause macro playback');
+      }
+      
+      return response.data.paused;
+    },
+    
+    /**
+     * Resume the currently paused macro
+     * 
+     * @returns {Promise<boolean>} - Whether the operation was successful
+     */
+    async resumePlayback() {
+      const response = await IpcRenderer.send('macro:resume');
+      
+      if (!response.success) {
+        throw new Error(response.error || 'Failed to resume macro playback');
+      }
+      
+      return response.data.resumed;
+    },
+    
+    /**
+     * Set the playback speed
+     * 
+     * @param {number} speed - Playback speed multiplier
+     * @returns {Promise<boolean>} - Whether the operation was successful
+     */
+    async setPlaybackSpeed(speed) {
+      const response = await IpcRenderer.send('macro:set-speed', { speed });
+      
+      if (!response.success) {
+        throw new Error(response.error || 'Failed to set playback speed');
+      }
+      
+      return response.data.updated;
+    },
+    
+    /**
+     * Get the current playback state
+     * 
+     * @returns {Promise<Object>} - Current playback state
+     */
+    async getPlaybackState() {
+      const response = await IpcRenderer.send('macro:get-playback-state');
+      
+      if (!response.success) {
+        throw new Error(response.error || 'Failed to get playback state');
       }
       
       return response.data;

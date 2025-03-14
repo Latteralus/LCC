@@ -336,40 +336,50 @@ const IpcMainHandler = {
       }
     });
     
-    // Play a specific macro
-    ipcMain.handle(MACRO_CHANNELS.PLAY, async (event, args) => {
+    // Cancel the current recording
+    ipcMain.handle('macro:cancel-recording', async () => {
       try {
-        logger.debug('Handling macro:play', args);
+        logger.debug('Handling macro:cancel-recording');
+        
+        const result = await macroRecorder.cancelRecording();
+        return successResponse({ cancelled: result });
+      } catch (error) {
+        logger.error('Error handling macro:cancel-recording', error);
+        return errorResponse(error.message);
+      }
+    });
+    
+    // Get the recording state
+    ipcMain.handle('macro:get-recording-state', async () => {
+      try {
+        logger.debug('Handling macro:get-recording-state');
+        
+        const state = macroRecorder.getRecordingState();
+        return successResponse(state);
+      } catch (error) {
+        logger.error('Error handling macro:get-recording-state', error);
+        return errorResponse(error.message);
+      }
+    });
+    
+    // Get a specific macro
+    ipcMain.handle('macro:get', async (event, args) => {
+      try {
+        logger.debug('Handling macro:get', args);
         
         if (!args || !args.macroId) {
           throw new Error('Macro ID is required');
         }
         
-        if (!macroPlayer) {
-          throw new Error('Macro player not initialized');
+        const macro = await macroRecorder.getMacro(args.macroId);
+        
+        if (!macro) {
+          return errorResponse('Macro not found');
         }
         
-        const result = await macroPlayer.playMacro(args.macroId);
-        return successResponse(result);
+        return successResponse(macro);
       } catch (error) {
-        logger.error('Error handling macro:play', error);
-        return errorResponse(error.message);
-      }
-    });
-    
-    // Stop the currently playing macro
-    ipcMain.handle(MACRO_CHANNELS.STOP, async () => {
-      try {
-        logger.debug('Handling macro:stop');
-        
-        if (!macroPlayer) {
-          throw new Error('Macro player not initialized');
-        }
-        
-        const result = await macroPlayer.stopPlayback();
-        return successResponse(result);
-      } catch (error) {
-        logger.error('Error handling macro:stop', error);
+        logger.error('Error handling macro:get', error);
         return errorResponse(error.message);
       }
     });
@@ -422,6 +432,159 @@ const IpcMainHandler = {
         return successResponse({ deleted: true });
       } catch (error) {
         logger.error('Error handling macro:delete', error);
+        return errorResponse(error.message);
+      }
+    });
+    
+    // Clear all macros
+    ipcMain.handle('macro:clear-all', async () => {
+      try {
+        logger.debug('Handling macro:clear-all');
+        
+        const success = await macroRecorder.clearAllMacros();
+        
+        if (!success) {
+          return errorResponse('Failed to clear all macros');
+        }
+        
+        return successResponse({ cleared: true });
+      } catch (error) {
+        logger.error('Error handling macro:clear-all', error);
+        return errorResponse(error.message);
+      }
+    });
+    
+    // Manually add action to recording
+    ipcMain.handle('macro:add-action', async (event, args) => {
+      try {
+        logger.debug('Handling macro:add-action', args);
+        
+        if (!args || !args.action) {
+          throw new Error('Action data is required');
+        }
+        
+        const success = await macroRecorder.addActionToRecording(args.action);
+        return successResponse({ added: success });
+      } catch (error) {
+        logger.error('Error handling macro:add-action', error);
+        return errorResponse(error.message);
+      }
+    });
+    
+    // Play a macro
+    ipcMain.handle(MACRO_CHANNELS.PLAY, async (event, args) => {
+      try {
+        logger.debug('Handling macro:play', args);
+        
+        if (!args || !args.macroId) {
+          throw new Error('Macro ID is required');
+        }
+        
+        if (!macroPlayer) {
+          throw new Error('Macro player not initialized');
+        }
+        
+        // Get playback options
+        const options = {
+          speed: args.speed || 1.0,
+          repeat: args.repeat || false,
+          repeatCount: args.repeatCount || 1,
+          suppressErrors: args.suppressErrors || false
+        };
+        
+        const result = await macroPlayer.playMacro(args.macroId, options);
+        return successResponse(result);
+      } catch (error) {
+        logger.error('Error handling macro:play', error);
+        return errorResponse(error.message);
+      }
+    });
+    
+    // Stop macro playback
+    ipcMain.handle(MACRO_CHANNELS.STOP, async () => {
+      try {
+        logger.debug('Handling macro:stop');
+        
+        if (!macroPlayer) {
+          throw new Error('Macro player not initialized');
+        }
+        
+        const result = await macroPlayer.stopPlayback();
+        return successResponse({ stopped: result });
+      } catch (error) {
+        logger.error('Error handling macro:stop', error);
+        return errorResponse(error.message);
+      }
+    });
+    
+    // Pause macro playback
+    ipcMain.handle('macro:pause', async () => {
+      try {
+        logger.debug('Handling macro:pause');
+        
+        if (!macroPlayer) {
+          throw new Error('Macro player not initialized');
+        }
+        
+        const result = await macroPlayer.pausePlayback();
+        return successResponse({ paused: result });
+      } catch (error) {
+        logger.error('Error handling macro:pause', error);
+        return errorResponse(error.message);
+      }
+    });
+    
+    // Resume macro playback
+    ipcMain.handle('macro:resume', async () => {
+      try {
+        logger.debug('Handling macro:resume');
+        
+        if (!macroPlayer) {
+          throw new Error('Macro player not initialized');
+        }
+        
+        const result = await macroPlayer.resumePlayback();
+        return successResponse({ resumed: result });
+      } catch (error) {
+        logger.error('Error handling macro:resume', error);
+        return errorResponse(error.message);
+      }
+    });
+    
+    // Set macro playback speed
+    ipcMain.handle('macro:set-speed', async (event, args) => {
+      try {
+        logger.debug('Handling macro:set-speed', args);
+        
+        if (!args || args.speed === undefined) {
+          throw new Error('Speed value is required');
+        }
+        
+        if (!macroPlayer) {
+          throw new Error('Macro player not initialized');
+        }
+        
+        const result = macroPlayer.setPlaybackSpeed(args.speed);
+        return successResponse({ updated: result, speed: args.speed });
+      } catch (error) {
+        logger.error('Error handling macro:set-speed', error);
+        return errorResponse(error.message);
+      }
+    });
+    
+    // Get macro playback state
+    ipcMain.handle('macro:get-playback-state', async () => {
+      try {
+        logger.debug('Handling macro:get-playback-state');
+        
+        if (!macroPlayer) {
+          throw new Error('Macro player not initialized');
+        }
+        
+        const state = macroPlayer.getPlaybackState();
+        return successResponse(state);
+      } catch (error) {
+        logger.error('Error handling macro:get-playback-state', error);
         return errorResponse(error.message);
       }
     });
