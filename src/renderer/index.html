@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'">
+  <link rel="stylesheet" href="styles/main.css">
+  <link rel="stylesheet" href="styles/themes.css">
+  <link rel="stylesheet" href="styles/components.css">
+  <title>Macro Automation Tool</title>
+</head>
+<body>
+  <div class="app-container">
+    <!-- App Header -->
+    <header class="app-header">
+      <div class="app-title">
+        <h1>Macro Automation Tool</h1>
+      </div>
+      <div class="app-controls">
+        <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">
+          <span class="icon icon-theme-light">☀️</span>
+          <span class="icon icon-theme-dark">🌙</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="app-main">
+      <div class="tabs">
+        <button class="tab-button active" data-tab="targets">Targets</button>
+        <button class="tab-button" data-tab="macros">Macros</button>
+        <button class="tab-button" data-tab="settings">Settings</button>
+      </div>
+
+      <div class="tab-content">
+        <!-- Targets Tab -->
+        <section id="targets-tab" class="tab-panel active">
+          <div class="section-header">
+            <h2>Target Management</h2>
+            <button id="add-target" class="primary-button">Set New Target</button>
+          </div>
+          
+          <div class="targets-container">
+            <div class="no-targets-message">
+              <p>No targets have been set yet. Click "Set New Target" to begin.</p>
+            </div>
+            
+            <ul id="targets-list" class="targets-list">
+              <!-- Targets will be added here dynamically -->
+            </ul>
+          </div>
+        </section>
+
+        <!-- Macros Tab -->
+        <section id="macros-tab" class="tab-panel">
+          <div class="section-header">
+            <h2>Macro Management</h2>
+            <div class="button-group">
+              <button id="record-macro" class="primary-button">Record New Macro</button>
+              <button id="stop-recording" class="danger-button" disabled>Stop Recording</button>
+            </div>
+          </div>
+          
+          <div class="macros-container">
+            <div class="no-macros-message">
+              <p>No macros have been recorded yet. Click "Record New Macro" to begin.</p>
+            </div>
+            
+            <ul id="macros-list" class="macros-list">
+              <!-- Macros will be added here dynamically -->
+            </ul>
+          </div>
+        </section>
+
+        <!-- Settings Tab -->
+        <section id="settings-tab" class="tab-panel">
+          <div class="section-header">
+            <h2>Settings</h2>
+          </div>
+          
+          <form id="settings-form" class="settings-form">
+            <div class="form-group">
+              <label for="trigger-key">Trigger Key:</label>
+              <input type="text" id="trigger-key" name="triggerKey" value="`" maxlength="1">
+            </div>
+            
+            <div class="form-group">
+              <label for="allow-modifiers">Allow Modifier Keys:</label>
+              <input type="checkbox" id="allow-modifiers" name="allowModifiers" checked>
+            </div>
+            
+            <div class="form-group">
+              <label for="target-delay">Target Delay (ms):</label>
+              <input type="number" id="target-delay" name="targetDelay" value="250" min="0" max="5000">
+            </div>
+            
+            <div class="form-group">
+              <label for="click-type">Default Click Type:</label>
+              <select id="click-type" name="defaultClickType">
+                <option value="left">Left Click</option>
+                <option value="right">Right Click</option>
+                <option value="double">Double Click</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label for="theme">Theme:</label>
+              <select id="theme" name="theme">
+                <option value="system">System Default</option>
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label for="indicator-color">Target Indicator Color:</label>
+              <input type="color" id="indicator-color" name="targetIndicatorColor" value="#FF5733">
+            </div>
+            
+            <div class="form-actions">
+              <button type="submit" class="primary-button">Save Settings</button>
+              <button type="reset" class="secondary-button">Reset to Defaults</button>
+            </div>
+          </form>
+        </section>
+      </div>
+    </main>
+
+    <!-- Status Bar -->
+    <footer class="app-footer">
+      <div class="status-message">Ready</div>
+      <div class="version-info">v0.1.0</div>
+    </footer>
+  </div>
+
+  <!-- Targeting Overlay (Hidden by default) -->
+  <div id="targeting-overlay" class="targeting-overlay hidden">
+    <div class="targeting-instructions">
+      <p>Click anywhere on the screen to set a target</p>
+      <p>Press <kbd>Esc</kbd> to cancel</p>
+    </div>
+    <div id="targeting-crosshair" class="targeting-crosshair"></div>
+  </div>
+
+  <!-- Cancel Button (Always visible during macro playback) -->
+  <button id="cancel-button" class="cancel-button hidden">
+    Cancel Macro (Esc)
+  </button>
+
+  <!-- Scripts -->
+  <script src="js/renderer-main.js" type="module"></script>
+</body>
+</html>

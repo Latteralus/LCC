@@ -1,0 +1,76 @@
+{
+    "name": "macro-automation-tool",
+    "version": "0.1.0",
+    "description": "Desktop application that automates user tasks with configurable macros",
+    "main": "main.js",
+    "scripts": {
+      "start": "electron .",
+      "dev": "electron . --dev",
+      "lint": "eslint .",
+      "lint:fix": "eslint . --fix",
+      "format": "prettier --write \"**/*.{js,json,md}\"",
+      "format:check": "prettier --check \"**/*.{js,json,md}\"",
+      "test": "jest",
+      "pack": "electron-builder --dir",
+      "dist": "electron-builder",
+      "dist:win": "electron-builder --win",
+      "dist:mac": "electron-builder --mac"
+    },
+    "keywords": [
+      "automation",
+      "macro",
+      "electron",
+      "desktop"
+    ],
+    "author": "",
+    "license": "MIT",
+    "devDependencies": {
+      "electron": "^28.1.0",
+      "electron-builder": "^24.6.4",
+      "eslint": "^8.56.0",
+      "eslint-config-prettier": "^9.1.0",
+      "eslint-plugin-prettier": "^5.1.2",
+      "jest": "^29.7.0",
+      "prettier": "^3.1.1"
+    },
+    "dependencies": {
+      "electron-store": "^8.1.0",
+      "mousetrap": "^1.6.5",
+      "robotjs": "^0.6.0",
+      "uuid": "^9.0.1"
+    },
+    "build": {
+      "appId": "com.macro-automation-tool.app",
+      "productName": "Macro Automation Tool",
+      "directories": {
+        "output": "dist"
+      },
+      "win": {
+        "target": [
+          "nsis",
+          "portable"
+        ]
+      },
+      "mac": {
+        "category": "public.app-category.productivity",
+        "target": [
+          "dmg",
+          "zip"
+        ]
+      },
+      "files": [
+        "**/*",
+        "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}",
+        "!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}",
+        "!**/node_modules/*.d.ts",
+        "!**/node_modules/.bin",
+        "!**/*.{iml,o,hprof,orig,pyc,pyo,rbc,swp,csproj,sln,xproj}",
+        "!.editorconfig",
+        "!**/._*",
+        "!**/{.DS_Store,.git,.hg,.svn,CVS,RCS,SCCS,.gitignore,.gitattributes}",
+        "!**/{__pycache__,thumbs.db,.flowconfig,.idea,.vs,.nyc_output}",
+        "!**/{appveyor.yml,.travis.yml,circle.yml}",
+        "!**/{npm-debug.log,yarn.lock,.yarn-integrity,.yarn-metadata.json}"
+      ]
+    }
+  }
